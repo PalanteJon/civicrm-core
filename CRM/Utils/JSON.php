@@ -46,6 +46,24 @@ class CRM_Utils_JSON {
     CRM_Utils_System::civiExit();
   }
 
+  /*
+   * Test if a string is a JSON array.  Note that valid JSON could also be an
+   * object, number, etc.
+   * @param string $input
+   * @return boolean
+   */
+
+  public static function isJsonArray($input) {
+    if ($input === NULL) {
+      return false;
+    }
+    if ($input[0] != '[') {
+      return false;
+    }
+    json_decode($input);
+    return (json_last_error() == JSON_ERROR_NONE);
+  }
+
   /**
    * Do not use this function. See CRM-16353.
    * @deprecated
