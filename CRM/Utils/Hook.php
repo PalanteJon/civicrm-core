@@ -2381,8 +2381,8 @@ abstract class CRM_Utils_Hook {
     return self::singleton()->invoke(array('message'), $message, self::$_nullObject, self::$_nullObject, self::$_nullObject, self::$_nullObject, self::$_nullObject, 'civicrm_inboundSMS');
   }
 
-  public static function relativeDate($filter, $from, $to) {
-    return self::singleton()->invoke(array('filter', 'from', 'to'), $filter, $from, $to, self::$_nullObject, self::$_nullObject, self::$_nullObject, 'civicrm_relativeDate');
+  public static function relativeDate($filter) {
+    return self::singleton()->invoke(array('filter'), $filter, self::$_nullObject, self::$_nullObject, self::$_nullObject, self::$_nullObject, self::$_nullObject, 'civicrm_relativeDate');
   }
 
 }

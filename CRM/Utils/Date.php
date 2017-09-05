@@ -806,7 +806,7 @@ class CRM_Utils_Date {
     }
     if ($relative) {
       if (CRM_Utils_JSON::isJsonArray($relative)) {
-        $dateRange = CRM_Utils_Hook::relativeDate($relative, $from, $to);
+        $dateRange = CRM_Utils_Hook::relativeDate($relative);
       }
       else {
         list($term, $unit) = CRM_Utils_System::explode('.', $relative, 2);
