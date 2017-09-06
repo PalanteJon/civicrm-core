@@ -805,7 +805,7 @@ class CRM_Utils_Date {
       $toTime = '235959';
     }
     if ($relative) {
-      if (CRM_Utils_JSON::isJsonArray($relative)) {
+      if (CRM_Utils_JSON::isJsonObject($relative)) {
         $dateRange = CRM_Utils_Hook::relativeDate($relative);
       }
       else {

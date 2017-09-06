@@ -53,11 +53,11 @@ class CRM_Utils_JSON {
    * @return boolean
    */
 
-  public static function isJsonArray($input) {
+  public static function isJsonObject($input) {
     if ($input === NULL) {
       return false;
     }
-    if ($input[0] != '[') {
+    if ($input[0] != '{') {
       return false;
     }
     json_decode($input);
