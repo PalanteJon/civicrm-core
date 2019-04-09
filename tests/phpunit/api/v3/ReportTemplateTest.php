@@ -1001,4 +1001,18 @@ class api_v3_ReportTemplateTest extends CiviUnitTestCase {
     ));
   }
 
+  /**
+   * Test a report that uses getAddressColumns();
+   */
+  public function testGetAddressColumns() {
+    $template = 'event/participantlisting';
+    $rows = $this->callAPISuccess('report_template', 'getrows', [
+      'report_id' => $template,
+      'fields' => [
+        'sort_name' => '1',
+        'street_address' => '1',
+      ],
+    ]);
+  }
+
 }
