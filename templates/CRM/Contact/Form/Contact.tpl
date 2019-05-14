@@ -297,7 +297,7 @@
         if ($(this).is('input[type=text]') && $(this).val().length < 3) {
           return;
         }
-        checkMatches().done(function (data) {
+        checkMatches('Supervised').done(function (data) {
           var params = {
             title: data.count == 1 ? {/literal}"{ts escape='js'}Similar Contact Found{/ts}" : "{ts escape='js'}Similar Contacts Found{/ts}"{literal},
             info: "{/literal}{ts escape='js'}If the contact you were trying to add is listed below, click their name to view or edit their record{/ts}{literal}:",
@@ -325,23 +325,16 @@
           match[fieldName] = ruleField.filter(':checked').val();
         } else if (ruleField.is('input[type=text]')) {
           if (ruleField.val().length > 2) {
-            match[fieldName] = ruleField.val() + (rule ? '' : '%');
+            match[fieldName] = ruleField.val();
           }
         } else {
           match[fieldName] = ruleField.val();
         }
       });
-      // CRM-20565 - Need a good default matching rule before using the dedupe engine for checking on-the-fly.
-      // Defaulting to contact.get.
-      var action = rule ? 'duplicatecheck' : 'get';
-      if (rule) {
-        params.rule_type = rule;
-        params.match = match;
-        params.exclude = cid ? [cid] : [];
-      } else {
-        _.extend(params, match);
-      }
-      CRM.api3('contact', action, params).done(function(data) {
+      params.rule_type = rule;
+      params.match = match;
+      params.exclude = cid ? [cid] : [];
+      CRM.api3('contact', 'duplicatecheck', params).done(function(data) {
         // If a new request has started running, cancel this one.
         if (checkNum < runningCheck) {
           response.reject();
