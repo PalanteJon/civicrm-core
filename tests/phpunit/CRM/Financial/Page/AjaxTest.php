@@ -52,7 +52,7 @@ class CRM_Financial_Page_AjaxTest extends CiviUnitTestCase {
     $this->assertEquals($json, '{"sEcho": 1, "iTotalRecords": 1, "iTotalDisplayRecords": 1, "aaData": [ ["","<a href=\"/index.php?q=civicrm/profile/view&amp;reset=1&amp;gid=7&amp;id=3&amp;snippet=4\" class=\"crm-summary-link\"><div'
     . ' class=\"icon crm-icon Individual-icon\"></div></a>","<a href=/index.php?q=civicrm/contact/view&amp;reset=1&amp;cid=3>Anderson, Anthony</a>","$ 100.00","12345","' . CRM_Utils_Date::customFormat(date('Ymd')) . ' 12:00 AM","' . CRM_Utils_Date::customFormat(date('Ymd')) . ' 12:00 AM",'
     . '"Credit Card","Completed","Donation","<span><a href=\"/index.php?q=civicrm/contact/view/contribution&amp;reset=1&amp;id=1&amp;cid=3&amp;action=view&amp;context=contribution&amp;'
-    . 'selectedChild=contribute\" class=\"action-item crm-hover-button\" title=\'View Contribution\' >View</a></span>"]] }');
+    . 'selectedChild=contribute\" class=\"action-item crm-hover-button\" title=\'View Contribution\' >View</a><a href=\"#\" class=\"action-item crm-hover-button\" title=\'Remove Transaction\' onclick = \"assignRemove( 1,\'remove\' );\">Remove</a></span>"]] }');
   }
 
 }
