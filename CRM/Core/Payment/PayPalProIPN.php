@@ -273,6 +273,17 @@ class CRM_Core_Payment_PayPalProIPN extends CRM_Core_Payment_BaseIPN {
           $recur->contribution_status_id = $contributionStatuses['In Progress'];
         }
         break;
+
+      case 'recurring_payment_failed':
+        if ($first) {
+          $recur->start_date = $now;
+        }
+        else {
+          $recur->modified_date = $now;
+        }
+        $recur->contribution_status_id = $contributionStatuses['Failed'];
+        break;
+
     }
 
     $recur->save();
@@ -293,7 +304,7 @@ class CRM_Core_Payment_PayPalProIPN extends CRM_Core_Payment_BaseIPN {
       );
     }
 
-    if ($txnType != 'recurring_payment') {
+    if ($txnType != 'recurring_payment' && $txnType != 'recurring_payment_failed') {
       return;
     }
 
@@ -514,6 +525,13 @@ INNER JOIN civicrm_membership_payment mp ON m.id = mp.membership_id AND mp.contr
     $input['paymentStatus'] = self::retrieve('payment_status', 'String', 'POST', FALSE);
 
     $input['amount'] = self::retrieve('mc_gross', 'Money', 'POST', FALSE);
+    if ($input['txnType'] == 'recurring_payment_failed') {
+      $input['paymentStatus'] = 'Failed';
+    }
+    //failed payments have "amount" but not "mc_gross".
+    if (!($input['amount'])) {
+      $input['amount'] = self::retrieve('amount', 'Money', 'POST', FALSE);
+    }
     $input['reasonCode'] = self::retrieve('ReasonCode', 'String', 'POST', FALSE);
 
     $billingID = $ids['billing'];
@@ -571,8 +589,8 @@ INNER JOIN civicrm_membership_payment mp ON m.id = mp.membership_id AND mp.contr
       'invoice_id' => $input['invoice'],
     ]);
 
-    if ($input['txnType'] !== 'recurring_payment' && $input['txnType'] !== 'recurring_payment_profile_created') {
-      throw new CRM_Core_Exception('Paypal IPNS not handled other than recurring_payments');
+    if ($input['txnType'] !== 'recurring_payment' && $input['txnType'] !== 'recurring_payment_profile_created' && $input['txnType'] !== 'recurring_payment_failed') {
+      throw new CRM_Core_Exception('Paypal IPNS not handled other than recurring_payment, recurring_payment_profile_created, and recurring_payment_failed');
     }
 
     $this->getInput($input, $ids);
