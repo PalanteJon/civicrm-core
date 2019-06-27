@@ -5775,6 +5775,12 @@ LIMIT 1;";
     $contributionDetails = array();
     foreach ($contributionIds as $id) {
       $result = civicrm_api3('Contribution', 'get', array('id' => $id));
+      // lab.c.o mail#46 - show labels, not values, for custom fields with option values.
+      foreach ($result['values'][$id] as $fieldName => $fieldValue) {
+        if (strpos($fieldName, 'custom_') === 0 && array_search($fieldName, $messageToken['contribution']) !== FALSE) {
+          $result['values'][$id][$fieldName] = CRM_Core_BAO_CustomField::displayValue($result['values'][$id][$fieldName], $fieldName);
+        }
+      }
       $contributionDetails[$result['values'][$result['id']]['contact_id']]['subject'] = CRM_Utils_Token::replaceContributionTokens($subject, $result, FALSE, $subjectToken, FALSE, $escapeSmarty);
       $contributionDetails[$result['values'][$result['id']]['contact_id']]['text'] = CRM_Utils_Token::replaceContributionTokens($text, $result, FALSE, $messageToken, FALSE, $escapeSmarty);
       $contributionDetails[$result['values'][$result['id']]['contact_id']]['html'] = CRM_Utils_Token::replaceContributionTokens($html, $result, FALSE, $messageToken, FALSE, $escapeSmarty);
