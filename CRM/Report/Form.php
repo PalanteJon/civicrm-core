@@ -2576,6 +2576,19 @@ WHERE cg.extends IN ('" . implode("','", $this->_customGroupExtends) . "') AND
   }
 
   /**
+   * Given a date string in YYYY-MM-DD hh:mm:ss formatm return the format
+   * specified for Complete Date and Time in the Date Preferences.
+   *
+   * @param string $dateString A string in YYYY-MM-DD hh:mm:ss format
+   * @return string A string that respects the date format set in Date Preferences
+   */
+  protected function alterDateTime($dateString) {
+    $format = Civi::settings()->get('dateformatDatetime');
+    $dateString = CRM_Utils_Date::customFormat($dateString, $format);
+    return $dateString;
+  }
+
+  /**
    * Build chart.
    *
    * @param array $rows

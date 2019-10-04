@@ -154,7 +154,7 @@ class CRM_Report_Form_Contribute_Detail extends CRM_Report_Form {
             'no_display' => TRUE,
           ],
           'trxn_id' => NULL,
-          'receive_date' => ['default' => TRUE],
+          'receive_date' => ['default' => TRUE, 'alter_display' => 'alterDateTime'],
           'receipt_date' => NULL,
           'thankyou_date' => NULL,
           'total_amount' => [
