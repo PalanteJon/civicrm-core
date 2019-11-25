@@ -215,11 +215,23 @@ FROM   {$this->_componentTable}
       $this->assign('totalSelectedRecords', $rowCount);
     }
 
+    // If you have a large export and transfer data via $this->get() or $this->set(),
+    // it can overwhelm session storage limits. Use a temporary space.
+    $zCachePrefix = $this->get('zCachePrefix');
+    if (!$zCachePrefix) {
+      $zCachePrefix = 'CRM_Export_' . CRM_Utils_String::createRandom(16, CRM_Utils_String::ALPHANUMERIC);
+      $this->set('zCachePrefix', $zCachePrefix);
+    }
+    $zCacheTtl = 60 * 60;
+    $zCachePut = function($key, $data) use ($zCachePrefix, $zCacheTtl) {
+      Civi::cache('long')->set("{$zCachePrefix}_{$key}", gzencode(json_encode($data), 9), $zCacheTtl);
+    };
+
     $this->assign('matchingContacts', $this->_matchingContacts);
-    $this->set('componentIds', $this->_componentIds);
+    $zCachePut('componentIds', $this->_componentIds);
     $this->set('selectAll', $this->_selectAll);
     $this->set('exportMode', $this->_exportMode);
-    $this->set('componentClause', $this->_componentClause);
+    $zCachePut('componentClause', $this->_componentClause);
     $this->set('componentTable', $this->_componentTable);
   }
 

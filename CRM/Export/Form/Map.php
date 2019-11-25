@@ -199,15 +199,25 @@ class CRM_Export_Form_Map extends CRM_Core_Form {
       }
     }
 
+    // Look up info retained from previous step
+    $zCachePrefix = $this->get('zCachePrefix');
+    $zCacheGet = function($key) use ($zCachePrefix) {
+      $raw = Civi::cache('long')->get("{$zCachePrefix}_{$key}");
+      if ($raw === NULL ) {
+        throw new \CRM_Core_Exception("Export process has expired or did not begin properly. Please start over.");
+      }
+      return json_decode(gzdecode($raw));
+    };
+
     //get the csv file
     CRM_Export_BAO_Export::exportComponents($this->get('selectAll'),
-      $this->get('componentIds'),
+      $zCacheGet('componentIds'),
       (array) $this->get('queryParams'),
       $this->get(CRM_Utils_Sort::SORT_ORDER),
       $mappedFields,
       $this->get('returnProperties'),
       $this->get('exportMode'),
-      $this->get('componentClause'),
+      $zCacheGet('componentClause'),
       $this->get('componentTable'),
       $this->get('mergeSameAddress'),
       $this->get('mergeSameHousehold'),
