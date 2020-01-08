@@ -156,8 +156,9 @@ class CRM_Event_Form_SelfSvcUpdate extends CRM_Core_Form {
       $details['register_date'] = $dao->register_date;
       $details['event_start_date'] = $dao->start_date;
     }
-    //verify participant status is still Registered
-    if ($details['status'] != "Registered") {
+    // Verify participant status is one that is available for self-service.
+    $isCancelable = CRM_Event_BAO_ParticipantStatusType::isSelfServiceCancelableStatus($details['status']);
+    if (!$isCancelable) {
       $status = "You cannot transfer or cancel your registration for " . $this->_event_title . ' as you are not currently registered for this event.';
       CRM_Core_Session::setStatus($status, ts('Sorry'), 'alert');
       CRM_Utils_System::redirect($url);
