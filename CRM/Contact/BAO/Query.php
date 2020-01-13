@@ -7085,7 +7085,7 @@ AND   displayRelType.is_active = 1
     elseif (empty($dates[1])) {
 
       // ie. no end date we only have start date
-      $this->_where[$grouping][] = $where . " >= '{$dates[1]}'";
+      $this->_where[$grouping][] = $where . " >= '{$dates[0]}'";
 
       $this->_qill[$grouping][] = ts('%1 is ', [$fieldSpec['title']]) . $filters[$value] . ' (' . ts("from %1", [
         CRM_Utils_Date::customFormat($dates[0]),
