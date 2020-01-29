@@ -170,16 +170,25 @@ class CRM_Event_Form_SelfSvcUpdate extends CRM_Core_Form {
     }
     $start_time = new Datetime($start_date);
     $timenow = new Datetime();
-    if (!$this->isBackoffice && !empty($start_time) && $start_time < $timenow) {
+    if (!$this->isBackoffice && !empty($start_time) && $start_time < $timenow && $time_limit >= 0) {
       $status = ts("Registration for this event cannot be cancelled or transferred once the event has begun. Contact the event organizer if you have questions.");
       CRM_Core_Error::statusBounce($status, $url, ts('Sorry'));
     }
-    if (!$this->isBackoffice && !empty($time_limit) && $time_limit > 0) {
+    if (!$this->isBackoffice && !empty($time_limit)) {
       $interval = $timenow->diff($start_time);
       $days = $interval->format('%d');
-      $hours   = $interval->format('%h');
-      if ($hours <= $time_limit && $days < 1) {
-        $status = ts("Registration for this event cannot be cancelled or transferred less than %1 hours prior to the event's start time. Contact the event organizer if you have questions.", [1 => $time_limit]);
+      $hours   = (int) $interval->format('%h') + ($days * 24);
+      // Change to a negative if we're past the start time.
+      if ($interval->invert) {
+        $hours *= -1;
+      }
+      if ($hours <= $time_limit && $time_limit != 0) {
+        // Change the language of the status message based on whether the waitlist time limit is positive or negative.
+        $priorOrAfter = $time_limit > 0 ? 'prior' : 'after';
+        $lessOrMore = $time_limit > 0 ? 'less' : 'more';
+        $timeLimitForStatus = abs($time_limit);
+        $status = ts("Registration for this event cannot be cancelled or transferred %2 than %1 hours %3 to the event's start time. Contact the event organizer if you have questions.",
+        [1 => $timeLimitForStatus, 2 => $lessOrMore, 3 => $priorOrAfter]);
         CRM_Core_Error::statusBounce($status, $url, ts('Sorry'));
       }
     }
