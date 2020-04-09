@@ -316,4 +316,39 @@ class api_v3_FinancialTypeACLTest extends CiviUnitTestCase {
     $this->assertEquals($contribution['count'], 1);
   }
 
+  /**
+   * Test that acl soft contributions can be retrieved.
+   */
+  public function testGetACLContributionSoft() {
+    $contribution = $this->callAPISuccess('Contribution', 'create', $this->_params);
+    $crediteeId = $this->individualCreate();
+
+    $params = [
+      'contribution_id' => $contribution['id'],
+      'amount' => 100,
+      'contact_id' => $crediteeId,
+    ];
+    $contributionSoft = $this->callAPISuccess('ContributionSoft', 'create', $params);
+
+    $this->enableFinancialACLs();
+    $this->setPermissions([
+      'access CiviCRM',
+      'access CiviContribute',
+      'administer CiviCRM',
+      'view all contacts',
+      'add contributions of type Donation',
+    ]);
+
+    $params = [
+      'id' => $contributionSoft['id'],
+      'check_permissions' => TRUE,
+    ];
+    $result = $this->callAPISuccess('ContributionSoft', 'get', $params);
+
+    $this->assertEquals($result['count'], 0);
+
+    $this->addFinancialAclPermissions([['view', 'Donation']]);
+    $this->callAPISuccessGetSingle('ContributionSoft', $params);
+  }
+
 }

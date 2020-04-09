@@ -35,7 +35,16 @@ class CRM_Contribute_BAO_ContributionSoft extends CRM_Contribute_DAO_Contributio
   public static function add(&$params) {
     $hook = empty($params['id']) ? 'create' : 'edit';
     CRM_Utils_Hook::pre($hook, 'ContributionSoft', CRM_Utils_Array::value('id', $params), $params);
-
+    if (CRM_Financial_BAO_FinancialType::isACLFinancialTypeStatus()) {
+      $contributionFound = \Civi\Api4\Contribution::get()
+        ->selectRowCount()
+        ->addWhere('id', '=', $params['contribution_id'])
+        ->execute()
+        ->count();
+      if (!$contributionFound) {
+        throw new CRM_Core_Exception("Failure: Contribution not found or permission denied.");
+      }
+    }
     $contributionSoft = new CRM_Contribute_DAO_ContributionSoft();
     $contributionSoft->copyValues($params);
 
@@ -51,6 +60,8 @@ class CRM_Contribute_BAO_ContributionSoft extends CRM_Contribute_DAO_Contributio
 
   /**
    * Process the soft contribution and/or link to personal campaign page.
+   * Note that financial type ACLs aren't necessary because you can't create/edit
+   * a soft credit unless you can create/edit the contribution.
    *
    * @param array $params
    * @param object $contribution CRM_Contribute_DAO_Contribution
@@ -228,12 +239,20 @@ class CRM_Contribute_BAO_ContributionSoft extends CRM_Contribute_DAO_Contributio
   public static function getSoftContributionTotals($contact_id, $isTest = 0) {
 
     $whereClause = "AND cc.cancel_date IS NULL";
+    $aclClause = '';
+    // Financial ACL check.
+    if (CRM_Financial_BAO_FinancialType::isACLFinancialTypeStatus()) {
+      $types = CRM_Financial_BAO_FinancialType::getAllEnabledAvailableFinancialTypes();
+      if (!empty($types)) {
+        $aclClause = ' AND cc.financial_type_id IN (' . implode(',', array_keys($types)) . ')';
+      }
+    }
 
     $query = "
-    SELECT SUM(amount) as amount, AVG(total_amount) as average, cc.currency
+    SELECT COUNT(ccs.id) as count, SUM(amount) as amount, AVG(amount) as average, cc.currency
     FROM civicrm_contribution_soft  ccs
       LEFT JOIN civicrm_contribution cc ON ccs.contribution_id = cc.id
-    WHERE cc.is_test = %2 AND ccs.contact_id = %1 {$whereClause}
+    WHERE cc.is_test = %2 AND ccs.contact_id = %1 {$whereClause} {$aclClause}
     GROUP BY currency";
 
     $params = [
@@ -248,7 +267,7 @@ class CRM_Contribute_BAO_ContributionSoft extends CRM_Contribute_DAO_Contributio
 
     while ($cs->fetch()) {
       if ($cs->amount > 0) {
-        $count++;
+        $count = $cs->count;
         $amount[] = CRM_Utils_Money::format($cs->amount, $cs->currency);
         $average[] = CRM_Utils_Money::format($cs->average, $cs->currency);
       }
@@ -260,7 +279,7 @@ class CRM_Contribute_BAO_ContributionSoft extends CRM_Contribute_DAO_Contributio
     $cancelAmountSQL = CRM_Core_DAO::executeQuery($query, $params);
     while ($cancelAmountSQL->fetch()) {
       if ($cancelAmountSQL->amount > 0) {
-        $countCancelled++;
+        $countCancelled = $cs->count;
         $cancelAmount[] = CRM_Utils_Money::format($cancelAmountSQL->amount, $cancelAmountSQL->currency);
       }
     }
@@ -294,6 +313,8 @@ class CRM_Contribute_BAO_ContributionSoft extends CRM_Contribute_DAO_Contributio
 
   /**
    * Retrieve soft contributions for an array of contribution records.
+   * Note that financial type ACLs don't need applying here because this only
+   * shows soft credits for a contribution the user can see.
    *
    * @param array $contributionIDs
    * @param bool $all
@@ -483,6 +504,17 @@ class CRM_Contribute_BAO_ContributionSoft extends CRM_Contribute_DAO_Contributio
       WHERE cc.is_test = %2 AND ccs.contact_id = %1";
     if ($filter) {
       $where .= $filter;
+    }
+
+    // Financial ACL check.
+    if (CRM_Financial_BAO_FinancialType::isACLFinancialTypeStatus()) {
+      $types = CRM_Financial_BAO_FinancialType::getAllEnabledAvailableFinancialTypes();
+      if (empty($types)) {
+        return [];
+      }
+      else {
+        $where .= ' AND cc.financial_type_id IN (' . implode(',', array_keys($types)) . ')';
+      }
     }
 
     $query .= "{$where} ORDER BY {$orderBy} {$limit}";
