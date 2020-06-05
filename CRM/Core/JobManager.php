@@ -37,12 +37,20 @@ class CRM_Core_JobManager {
   public $_source = NULL;
 
   /**
+   * @var string The time the cron job started.
+   */
+  private $cronStartTime = NULL;
+
+  /**
    * Class constructor.
    */
   public function __construct() {
     $config = CRM_Core_Config::singleton();
     $config->fatalErrorHandler = 'CRM_Core_JobManager_scheduledJobFatalErrorHandler';
 
+    // Save the cron job start time to prevent start time slippage
+    // We force the seconds to 00 because a) cron can't run at second intervals, b) race conditions.
+    $this->cronStartTime = date('YmdHi') . '00';
     $this->jobs = $this->_getJobs();
   }
 
@@ -117,7 +125,7 @@ class CRM_Core_JobManager {
     }
 
     $this->logEntry('Starting execution of ' . $job->name);
-    $job->saveLastRun();
+    $job->saveLastRun($this->cronStartTime);
 
     $singleRunParamsKey = strtolower($job->api_entity . '_' . $job->api_action);
 

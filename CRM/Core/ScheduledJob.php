@@ -61,12 +61,12 @@ class CRM_Core_ScheduledJob {
   }
 
   /**
-   * @param null $date
+   * @param string $date a timestamp string in YmdHis format
    */
   public function saveLastRun($date = NULL) {
     $dao = new CRM_Core_DAO_Job();
     $dao->id = $this->id;
-    $dao->last_run = ($date == NULL) ? CRM_Utils_Date::currentDBDate() : CRM_Utils_Date::currentDBDate($date);
+    $dao->last_run = $date ?? CRM_Utils_Date::currentDBDate();
     $dao->save();
   }
 
