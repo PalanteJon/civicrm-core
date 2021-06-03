@@ -2474,7 +2474,7 @@ SELECT contact_id
     foreach ($links as $refSpec) {
       /** @var $refSpec CRM_Core_Reference_Interface */
       $count = $refSpec->getReferenceCount($this);
-      if ($count['count'] != 0) {
+      if (isset($count) && $count['count'] != 0) {
         $counts[] = $count;
       }
     }
